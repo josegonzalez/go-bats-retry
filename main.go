@@ -166,7 +166,7 @@ func executeBatsCommands(commandMap map[string][][]string, testDirectory string,
 			lc := l.WithField("testcase", testcase)
 			lc.WithField("bats", args).Info("Executing bats command")
 			startTime := time.Now()
-			if err := sh.Command("echo", args...).Run(); err != nil {
+			if err := sh.Command("bats", args...).Run(); err != nil {
 				result = multierror.Append(result, err)
 				continue
 			}
