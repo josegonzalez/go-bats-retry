@@ -67,6 +67,11 @@ func newLogger() *logrus.Logger {
 
 func processFile(testDirectory string, file os.FileInfo, logger *logrus.Entry) ([]string, error) {
 	testcases := []string{}
+	if strings.HasSuffix(file.Name(), ".xml") {
+		logger.Info("Not an xml file")
+		return testcases, nil
+	}
+
 	logger.Info("Processing")
 	xmlFile, err := os.Open(path.Join(testDirectory, file.Name()))
 	if err != nil {
