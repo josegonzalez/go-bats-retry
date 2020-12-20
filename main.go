@@ -120,7 +120,7 @@ func writeSliceToFile(filename string, lines []string) error {
 		return err
 	}
 
-	file.Chmod(0600)
+	file.Chmod(0700)
 
 	return nil
 }
