@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="nginx.bats" tests="6" failures="1" errors="0" skipped="5" time="64" timestamp="2020-12-20T02:36:24" hostname="default-44357d23-931e-4ca3-8559-f91c85546d0c">
+  <properties>
+    <property name="BATS_TEST_FILTER" value=""/>
+    <property name="BATS_ROOT" value="/usr/local"/>
+    <property name="BATS_CWD" value="/home/circleci/project/tests/unit"/>
+    <property name="BATS_REPORT_OUTPUT_PATH" value="../../test-results/bats"/>
+    <property name="BATS_VERSION" value="1.1.0"/>
+    <property name="BATS_EXECUTOR_FLAGS" value="-T"/>
+    <property name="BATS_TEST_PATTERN" value="^[[:blank:]]*@test[[:blank:]]+(.*[^[:blank:]])[[:blank:]]+\{(.*)$"/>
+  </properties>
+    <testcase classname="nginx.bats" name="(nginx-vhosts) logging" time="62"/>
+  <system-out></system-out>
+  <system-err></system-err>
+</testsuite>

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -65,23 +66,20 @@ func newLogger() *logrus.Logger {
 	return l
 }
 
-func processFile(testDirectory string, file os.FileInfo, logger *logrus.Entry) ([]string, error) {
+func processFile(testDirectory string, file os.FileInfo, logger *logrus.Entry) (string, []string, error) {
+	testfile := ""
 	testcases := []string{}
-	if strings.HasSuffix(file.Name(), ".xml") {
-		logger.Info("Not an xml file")
-		return testcases, nil
-	}
 
 	logger.Info("Processing")
 	xmlFile, err := os.Open(path.Join(testDirectory, file.Name()))
 	if err != nil {
-		return testcases, err
+		return testfile, testcases, err
 	}
 	defer xmlFile.Close()
 
 	byteValue, err := ioutil.ReadAll(xmlFile)
 	if err != nil {
-		return testcases, err
+		return testfile, testcases, err
 	}
 
 	s := string(byteValue)
@@ -89,7 +87,17 @@ func processFile(testDirectory string, file os.FileInfo, logger *logrus.Entry) (
 
 	var testsuite Testsuite
 	if err := xml.Unmarshal([]byte(s), &testsuite); err != nil {
-		return testcases, err
+		return testfile, testcases, err
+	}
+
+	for _, property := range testsuite.Properties.Property {
+		if property.Name == "BATS_CWD" {
+			testfile = path.Join(property.Value, testsuite.Name)
+		}
+	}
+
+	if testfile == "" {
+		return testfile, testcases, errors.New("Unable to generate testfile path")
 	}
 
 	for _, testcase := range testsuite.Testcase {
@@ -107,7 +115,7 @@ func processFile(testDirectory string, file os.FileInfo, logger *logrus.Entry) (
 		}
 	}
 
-	return testcases, nil
+	return testfile, testcases, nil
 }
 
 func writeSliceToFile(filename string, lines []string) error {
@@ -149,33 +157,42 @@ func main() {
 	l := logger.WithField("test-directory", testDirectory)
 	files, err := ioutil.ReadDir(testDirectory)
 	if err != nil {
-		l.Error(err)
+		l.WithField("error", err.Error()).Error("Error reading test directory")
 		os.Exit(1)
 	}
 
-	if len(files) == 0 {
-		logger.Info("No testsuites found")
+	validFiles := []os.FileInfo{}
+	for _, file := range files {
+		if !strings.HasSuffix(file.Name(), ".xml") {
+			continue
+		}
+
+		validFiles = append(validFiles, file)
+	}
+
+	if len(validFiles) == 0 {
+		l.Info("No testsuites found")
 		os.Exit(0)
 	}
 
 	lines := []string{"#!/usr/bin/env bash", "set -eo pipefail", ""}
-	for _, file := range files {
+	for _, file := range validFiles {
 		lf := l.WithField("file", file.Name())
-		newTests, err := processFile(testDirectory, file, lf)
+		testfile, newTests, err := processFile(testDirectory, file, lf)
 		if err != nil {
-			logger.Error(err)
+			lf.WithField("error", err.Error()).Error("Error processing file")
 			os.Exit(1)
 		}
 
 		for _, test := range newTests {
 			test = strings.ReplaceAll(test, "(", "\\(")
 			test = strings.ReplaceAll(test, ")", "\\)")
-			lines = append(lines, fmt.Sprintf("bats --filter '%s' %s", test, path.Join(testDirectory, file.Name())))
+			lines = append(lines, fmt.Sprintf("bats --filter '%s' %s", test, testfile))
 		}
 	}
 
 	if err := writeSliceToFile(testScript, lines); err != nil {
-		l.Error(err)
+		l.WithField("error", err.Error()).Error("Error writing file")
 		os.Exit(1)
 	}
 }

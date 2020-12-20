@@ -4,12 +4,10 @@ export SYSTEM_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 export BATS_RETRY_BIN="build/$SYSTEM_NAME/bats-retry"
 
 setup_file() {
-  mkdir -p test-output
   make prebuild $BATS_RETRY_BIN
 }
 
 teardown_file() {
-  rm -r test-output
   make clean
 }
 
@@ -82,18 +80,163 @@ assert_failure() {
   fi
 }
 
-@test "no tests" {
-  run /bin/bash -c "$BATS_RETRY_BIN fixtures/empty test-output/script"
-  assert_success
-  assert_output_contains "No testsuites found"
-}
-
 @test "args" {
   run /bin/bash -c "$BATS_RETRY_BIN"
+  echo "output: $output"
+  echo "status: $status"
   assert_failure
   assert_output_contains "No test directory specified"
 
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+
   run /bin/bash -c "$BATS_RETRY_BIN fixtures/empty"
+  echo "output: $output"
+  echo "status: $status"
   assert_failure
   assert_output_contains "No test script location specified"
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+}
+
+@test "[invalid] directory" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/missing validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+  assert_output_contains "no such file or directory"
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+}
+
+@test "[invalid] file" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/invalid-xml validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+  assert_output_contains "Error processing file"
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+}
+
+@test "[invalid] no test suites" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/invalid-no-tests validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output_contains "No testsuites found"
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_failure
+}
+
+@test "[no failures] single file" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/successful validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+}
+
+@test "[no failures] multiple files" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/successful-multiple validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+}
+
+@test "[failures] failed" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/failure validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "cat validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output_contains "nginx:set proxy-busy-buffers-size"
+
+  run /bin/bash -c "cat validation/script | wc -l"
+  echo "output: $output"
+  echo "status: $status"
+  assert_equal "$output" 4
+}
+
+@test "[failures] skipped" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/failure-skipped validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "cat validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output_contains "nginx:set proxy-busy-buffers-size"
+  assert_output_contains "with SSL and unrelated domain"
+  assert_output_contains "wildcard SSL"
+
+  run /bin/bash -c "cat validation/script | wc -l"
+  echo "output: $output"
+  echo "status: $status"
+  assert_equal "$output" 6
+}
+
+@test "[failures] combined" {
+  run /bin/bash -c "$BATS_RETRY_BIN fixtures/failure-combined validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run test -x validation/script
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "cat validation/script"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output_contains "nginx:set whatever"
+  assert_output_contains "nginx:set proxy-busy-buffers-size"
+  assert_output_contains "with SSL and unrelated domain"
+  assert_output_contains "wildcard SSL"
+
+  run /bin/bash -c "cat validation/script | wc -l"
+  echo "output: $output"
+  echo "status: $status"
+  assert_equal "$output" 7
 }

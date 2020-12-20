@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="nginx.bats" tests="11" failures="1" errors="0" skipped="2" time="670" timestamp="2020-12-05T05:25:09" hostname="default-73756796-6796-4920-9ef0-556b6229bb03">
+  <properties>
+    <property name="BATS_TEST_FILTER" value=""/>
+    <property name="BATS_ROOT" value="/usr/local"/>
+    <property name="BATS_CWD" value="/home/circleci/project/tests/unit"/>
+    <property name="BATS_REPORT_OUTPUT_PATH" value="../../test-results/bats"/>
+    <property name="BATS_VERSION" value="1.1.0"/>
+    <property name="BATS_EXECUTOR_FLAGS" value="-T"/>
+    <property name="BATS_TEST_PATTERN" value="^[[:blank:]]*@test[[:blank:]]+(.*[^[:blank:]])[[:blank:]]+\{(.*)$"/>
+  </properties>
+    <testcase classname="nginx.bats" name="(nginx-vhosts) nginx:set whatever" time="33">
+        <failure type="unknown"><![CDATA[
+(from function `deploy_app' in file test_helper.bash, line 176,
+ in test file nginx.bats, line 329)
+  `deploy_app' failed
+              total        used        free      shared  buff/cache   available
+Mem:           7472         273        4346           9        2853        6846
+Swap:             0           0           0
+-----> Creating rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm...
+Initialized empty Git repository in /tmp/dokku.me.Fupon/.git/
+setting up remote: dokku@dokku.me:rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm
+[master (root-commit) 3eda9ab] initial commit
+ 8 files changed, 101 insertions(+)
+ create mode 100644 .buildpacks
+ create mode 100644 CHECKS
+ create mode 100644 Procfile
+ create mode 100644 app.json
+ create mode 100644 check_deploy
+ create mode 100644 null
+ create mode 100644 web.py
+ create mode 100644 worker.py
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+remote: [1G-----> DOKKU_SKIP_CLEANUP set. Skipping dokku cleanup
+remote: [1G-----> Building rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm from herokuish...
+remote: [1G-----> Adding BUILD_ENV to build environment...
+remote: [1G[1G       [1G-----> Multipack app detected
+remote: [1G[1G=====> Downloading Buildpack: https://github.com/dokku/buildpack-null.git
+remote: [1G[1G=====> Detected Framework: null
+remote: [1G[1G       Performing no commands for null buildpack
+remote: [1G[1G       [1G-----> Discovering process types
+remote: [1G[1G       Procfile declares types -> cron, custom, release, web, worker
+remote: [1G-----> Releasing rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm...
+remote: [1G-----> Deploying rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm...
+To dokku.me:rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm
+ ! [remote rejected] master -> master (pre-receive hook declined)
+error: failed to push some refs to 'dokku@dokku.me:rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm'
+-----> Destroying rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm (including all add-ons)
+-----> Cleaning up...
+ !     App rdmtestapp-y3x6n2nyzib5dzb8paiakhyo6431bbpm does not exist
+ !     You haven't deployed any applications yet
+]]></failure>
+    </testcase>
+  <system-out></system-out>
+  <system-err></system-err>
+</testsuite>
